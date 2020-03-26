@@ -110,9 +110,9 @@ export default () => {
                                 <List.Item
                                     key={item.title}
                                     actions={[
-                                        <Button>Default</Button>,
-                                        <Button>Default</Button>,
-                                        <Button>Default</Button>
+                                        <Button>编辑</Button>,
+                                        <Button>删除</Button>,
+                                        <Button>查看评论</Button>
                                     ]}
                                     extra={
                                         <img
@@ -140,4 +140,3 @@ export default () => {
         </ListContainer>
     )
 }
-

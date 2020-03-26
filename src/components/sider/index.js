@@ -27,7 +27,7 @@ export default () => {
                     }
                 >
                     <Menu.Item key="1"><Link to="/article-list"><MyIcon type="icon-liebiao" />文章列表</Link></Menu.Item>
-                    <Menu.Item key="2"><MyIcon type="icon-tianjia" />添加文章</Menu.Item>
+                    <Menu.Item key="2"><Link to="/article-add"><MyIcon type="icon-tianjia" />添加文章</Link></Menu.Item>
                 </SubMenu>
                 <SubMenu
                     key="sub2"

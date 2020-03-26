@@ -6,6 +6,16 @@ export const ListContainer = styled.div`
     .ant-pagination {
         text-align:center;
     }
+    .ant-list-item{
+        position:relative;
+    }
+    .ant-list-item-action{
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-105%);
+    }
+
     .load-more{
         width:400px;
     }

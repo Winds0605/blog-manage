@@ -5,6 +5,7 @@ import Header from './components/header/index'
 import Home from './pages/home/index'
 
 import ArticleList from './pages/article/article-list/index'
+import ArticleAdd from './pages/article/article-add/index'
 
 import { BrowserRouter, Route, Redirect } from 'react-router-dom'
 import './App.css';
@@ -19,6 +20,7 @@ function App () {
           <Redirect path="/" to="/home" />
           <Route path='/home' exact component={Home}></Route>
           <Route path='/article-list' exact component={ArticleList}></Route>
+          <Route path='/article-add' exact component={ArticleAdd}></Route>
         </div>
       </BrowserRouter>
     </div>
