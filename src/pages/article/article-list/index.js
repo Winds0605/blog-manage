@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { useHistory } from 'react-router-dom'
 import { get, post } from 'utils/http'
 import { MyIcon, formatDate } from 'utils/util'
+import { altImg } from 'utils/config'
 import { ListContainer, StatusContainer, Title } from './style'
 import { List, Tag, Button, Tabs, message, BackTop, Skeleton } from 'antd';
+
 const { TabPane } = Tabs;
 
 
@@ -20,13 +23,15 @@ const Status = ({ date, views, tag }) => {
 
 export default () => {
 
-    const [movie, setMovie] = useState([])
+    const [articles, setArticles] = useState([])
     const [loading, setLoading] = useState(false)
     const [initLoading, setInitLoading] = useState(true)
     const [page, setPage] = useState(1)
     const [total, setTatol] = useState(0)
     const [nowTag, setNowTag] = useState('All')
     const [tags, setTags] = useState([])
+
+    let history = useHistory()
 
     const loadData = async (tag) => {
         try {
@@ -38,7 +43,7 @@ export default () => {
             const tags = await get('/tags/findAll')
             setInitLoading(false)
             setPage(1)
-            setMovie(articles.data.data)
+            setArticles(articles.data.data)
             setTatol(articles.data.total)
             setTags(['All', ...tags.data.data[0].tags])
         } catch (error) {
@@ -46,18 +51,49 @@ export default () => {
         }
     }
 
+    // 删除按钮点击事件
+    const handleDelete = async (id, index) => {
+        try {
+            const articleDeleteResult = await post('/articles/delete', {
+                articleId: id
+            })
+            const commentDeleteResult = await post('/comments/delete', {
+                articleId: id
+            })
+            if (articleDeleteResult.data.code !== 200 || commentDeleteResult.data.code !== 200) {
+                message.error('删除失败')
+            } else {
+                message.success('删除成功')
+                setArticles(articles.slice(0, index).concat(articles.slice(index + 1)))
+                setTatol(total - 1)
+            }
+        } catch (error) {
+            throw error
+        }
+    }
+
+    // 编辑按钮点击事件
+    const handleEdit = async (id) => {
+        history.push(`/article-add/${id}`)
+    }
+
+    // 文章图片显示错误时使用其他图片代替
+    const setAltImg = (e) => {
+        e.target.src = altImg
+    }
+
 
     // 加载更多数据
     const onLoadMore = async () => {
         try {
             setLoading(true)
-            const articles = await post('/articles/findByPage', {
+            const result = await post('/articles/findByPage', {
                 page: page + 1,
                 tag: nowTag
             })
-            if (articles.data.code === 200) {
+            if (result.data.code === 200) {
                 setLoading(false)
-                setMovie(movie.concat(articles.data.data))
+                setArticles(articles.concat(result.data.data))
             } else {
                 message.error('载入数据失败')
             }
@@ -76,7 +112,7 @@ export default () => {
 
     // 载入更多按钮
     const loadMore =
-        !initLoading && !loading && movie.length !== total ? (
+        !initLoading && !loading && articles.length !== total ? (
             <div
                 style={{
                     textAlign: 'center',
@@ -86,7 +122,7 @@ export default () => {
                     lineHeight: '32px',
                 }}
             >
-                <Button onClick={onLoadMore} className="load-more">loading more</Button>
+                <Button onClick={onLoadMore} className="load-more">加载更多文章</Button>
             </div>
         ) : null;
 
@@ -105,13 +141,13 @@ export default () => {
                             size="large"
                             loading={initLoading}
                             loadMore={loadMore}
-                            dataSource={movie}
-                            renderItem={item => (
+                            dataSource={articles}
+                            renderItem={(item, index) => (
                                 <List.Item
                                     key={item.title}
                                     actions={[
-                                        <Button>编辑</Button>,
-                                        <Button>删除</Button>,
+                                        <Button onClick={handleEdit.bind(this, item.articleId)}>编辑</Button>,
+                                        <Button onClick={handleDelete.bind(this, item.articleId, index)}>删除</Button>,
                                         <Button>查看评论</Button>
                                     ]}
                                     extra={
@@ -120,6 +156,7 @@ export default () => {
                                             height={200}
                                             alt="logo"
                                             src={item.banner}
+                                            onError={setAltImg}
                                         />
                                     }
                                 >

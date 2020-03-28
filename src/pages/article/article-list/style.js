@@ -23,6 +23,10 @@ export const ListContainer = styled.div`
         right:20px;
         bottom:10px;
     }
+    .ant-list-item {
+        padding-left:20px;
+        padding-right:20px;
+    }
 `
 
 export const StatusContainer = styled.div`

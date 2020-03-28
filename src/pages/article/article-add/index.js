@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
+import { useParams } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import { FormContainer } from './style'
 import { getBase64 } from 'utils/util'
-import { Form, Input, Select, Button, Upload, Modal, message } from 'antd';
+import { get, post } from 'utils/http'
+import { Form, Input, Select, Button, Upload, Modal, message, Row, Col } from 'antd';
 import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
+import Editor from 'for-editor'
 
 const { Option } = Select
+const { TextArea } = Input
 
 const layout = {
     labelCol: {
@@ -15,168 +20,287 @@ const layout = {
     },
 };
 const validateMessages = {
-    required: 'This field is required!',
-    types: {
-        email: 'Not a validate email!',
-        number: 'Not a validate number!',
-    },
-    number: {
-        range: 'Must be between 0 and 99',
-    },
+    required: '此项未填写'
 };
 
-const props = {
-    name: 'file',
-    action: 'http://192.168.0.100:3030/tools/transform',
-    // headers: {
-    //     authorization: 'authorization-text',
-    // },
-    onChange (info) {
-        if (info.file.status !== 'uploading') {
-            console.log(info.file, info.fileList);
-        }
-        if (info.file.status === 'done') {
-            message.success(`${info.file.name} file uploaded successfully`);
-        } else if (info.file.status === 'error') {
-            message.error(`${info.file.name} file upload failed.`);
-        }
-    },
-};
+
 
 export default () => {
-    const [visible, setVisible] = useState(false)
-    const [fileList, setFileList] = useState([])
     const [previewVisible, setPreviewVisible] = useState(false)
     const [previewImage, setPreviewImage] = useState('')
+    const [initFormValues, setInitFormValues] = useState({})
+    const [article, setArticle] = useState('')
+    const [imageFileList, setImageFileList] = useState([])
+    const [articleFileList, setArticleFileList] = useState([])
+    const [selectOptions, setSelectOptions] = useState([])
 
-    const showModal = () => {
-        setVisible(true)
-    };
+    const history = useHistory()
+    const routerParams = useParams()
+    const [form] = Form.useForm()
 
-    const handleOk = e => {
-        console.log(e);
-        setVisible(false)
-    };
-
-    const handleCancel = e => {
-        console.log(e);
-        setVisible(false)
-    };
-
-    const onFinish = values => {
-        console.log(values);
-    };
-
-    const handleChange = (value) => {
-        console.log(`selected ${value}`);
+    const loadData = async (params, form) => {
+        try {
+            if (params.id) {
+                const articleInfo = await post('/articles/findById', {
+                    articleId: params.id
+                })
+                form.setFieldsValue({
+                    title: articleInfo.data.data.title,
+                    desc: articleInfo.data.data.desc,
+                    banner: articleInfo.data.data.banner,
+                    tag: articleInfo.data.data.tag,
+                    content: articleInfo.data.data.content,
+                })
+                setArticle(articleInfo.data.data.content)
+                setImageFileList([{
+                    uid: '1',
+                    name: articleInfo.data.data.banner.slice(articleInfo.data.data.banner.lastIndexOf('/') + 1),
+                    status: 'done',
+                    url: articleInfo.data.data.banner
+                }])
+            }
+            const result = await get('/tags/findAll')
+            setSelectOptions(result.data.data[0].tags)
+        } catch (error) {
+            message.error(error)
+        }
     }
 
-    const normFile = e => {
-        console.log('Upload event:', e);
-        if (Array.isArray(e)) {
-            return e;
+    // 发布/编辑事件
+    const onSumbit = async values => {
+        try {
+            let result
+            if (routerParams.id) {
+                result = await post('/articles/edit', {
+                    articleId: routerParams.id,
+                    ...values
+                })
+            } else {
+                result = await post('/articles/add', values)
+            }
+
+            if (result.data.code !== 200) {
+                message.error(routerParams.id ? `编辑失败：${result.data.msg}` : `发布失败：${result.data.msg}`)
+            } else {
+                message.success(routerParams.id ? '编辑成功' : '发布成功')
+                if (routerParams.id) {
+                    history.push('/article-list')
+                } else {
+                    form.current.resetFields()
+                    setImageFileList([])
+                    setArticleFileList([])
+                }
+            }
+        } catch (error) {
+            throw error
         }
-        return e && e.fileList;
     };
+
+
+
+    // 文件上传事件
+    const fileUploadChange = ({ file, fileList }) => {
+        setArticleFileList(fileList)
+        if (file.status === 'done') {
+            message.success('导入文件内容成功');
+            setArticle(article.concat(file.response.data))
+        } else if (file.status === 'error') {
+            message.error('导入文件内容失败');
+        }
+    }
+
+    // 图片上传改变事件
+    const handleUploadChange = ({ file, fileList }) => {
+        setImageFileList(fileList)
+        if (file.status === 'done') {
+            message.success('上传图片成功');
+        } else if (file.status === 'error') {
+            message.error('上传图片失败');
+        }
+    };
+
+    // 文章内容改变事件
+    const handleContentChange = (value) => {
+        setArticle(value)
+        // 将编辑框里面的值更新进form字段
+        form.setFieldsValue({
+            ...form.getFieldsValue(),
+            content: value
+        })
+    }
 
     const handleUploadCancel = () => setPreviewVisible(false)
 
+    // 图片缩略图
     const handlePreview = async file => {
         if (!file.url && !file.preview) {
             file.preview = await getBase64(file.originFileObj);
         }
-
         setPreviewImage(file.url || file.preview)
         setPreviewVisible(true)
     };
 
-    const handleUploadChange = ({ fileList }) => setFileList(fileList);
+    // 从回调数据中获取图片路径
+    const getImageUrl = ({ file }) => {
+        if (file.status === 'done') {
+            return file.response.data
+        } else if (file.status === 'error') {
+            message.error('上传图片失败');
+        }
+    }
 
+    // 从回调数据中获取文件内容
+    const getFileContent = ({ file }) => {
+        if (file.status === 'done') {
+            return article + file.response.data
+        } else if (file.status === 'error') {
+            message.error('导入文件失败');
+        }
+    }
+
+    // 表单字段对应值变化事件
+    const formInfoChange = (changedValues, allValues) => {
+        console.log(allValues)
+    }
+
+    useEffect(() => {
+        loadData(routerParams, form)
+    }, [routerParams, form])
     return (
         <FormContainer>
-            <Form {...layout} name="nest-messages" onFinish={onFinish} validateMessages={validateMessages}>
-                <Form.Item
-                    name={['user', 'name']}
-                    label="文章标题"
-                    rules={[
-                        {
-                            required: true,
-                        },
-                    ]}
-                >
-                    <Input />
-                </Form.Item>
+            <Form initialValues={initFormValues} {...layout} name="nest-messages" onFinish={onSumbit} onValuesChange={formInfoChange} validateMessages={validateMessages} form={form}>
+                <Row gutter={16}>
+                    <Col className="gutter-row" span={12}>
+                        <Form.Item
+                            name='title'
+                            label="文章标题"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: '请输入文章标题'
+                                },
+                                {
+                                    min: 5,
+                                    message: '不能少于5个字符'
+                                },
+                                {
+                                    max: 30,
+                                    message: '不能多于30个字符'
+                                }
+                            ]}
+                        >
+                            <Input />
+                        </Form.Item>
 
-                <Form.Item
-                    name={['user', 'email']}
-                    label="文章分类"
-                    rules={[
-                        {
-                            type: 'email',
-                        },
-                        {
-                            required: true,
-                        }
-                    ]}
-                >
-                    <Select defaultValue="lucy" style={{ width: 120 }} onChange={handleChange}>
-                        <Option value="jack">Jack</Option>
-                        <Option value="lucy">Lucy</Option>
-                        <Option value="disabled" disabled>
-                            Disabled
-                        </Option>
-                        <Option value="Yiminghe">yiminghe</Option>
-                    </Select>
-                </Form.Item>
+                        <Form.Item
+                            name='tag'
+                            label="文章分类"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: '请选择文章分类'
+                                }
+                            ]}
+                        >
+                            <Select defaultValue="请选择标签" style={{ width: 200 }}>
+                                {
+                                    selectOptions.map(value => {
+                                        return <Option value={value} key={value}>{value}</Option>
+                                    })
+                                }
+                            </Select>
+                        </Form.Item>
 
-                <Form.Item name='introduction' label="文章内容">
-                    <Button onClick={showModal}>
-                        编辑
-                    </Button>
-                    <Upload {...props} className="import">
-                        <Button>
-                            <UploadOutlined /> Click to Upload
-                        </Button>
-                    </Upload>
-                </Form.Item>
+                        <Form.Item
+                            label="文章内容"
+                            name='content'
+                            getValueFromEvent={getFileContent}
+                            rules={[
+                                {
+                                    required: true,
+                                    message: '请输入文章内容'
+                                }
+                            ]}>
+                            <Upload
+                                name='file'
+                                action='http://192.168.0.100:3030/tools/transform'
+                                className="import"
+                                onChange={fileUploadChange}
+                                fileList={articleFileList}
+                                rules={[
+                                    {
+                                        required: true,
+                                    }
+                                ]}
+                            >
+                                <Button>
+                                    <UploadOutlined /> 导入文件
+                                </Button>
+                            </Upload>
+                        </Form.Item>
 
-                <Form.Item label="文章图片" name="image" valuePropName="fileList" getValueFromEvent={normFile}>
-                    <Upload
-                        action="http://192.168.0.100:3030/tools/uploadImg"
-                        listType="picture-card"
-                        fileList={fileList}
-                        onPreview={handlePreview}
-                        onChange={handleUploadChange}
-                        className="upload-img"
-                    >
-                        {fileList.length >= 1 ? null : (
-                            <div>
-                                <PlusOutlined />
-                                <div className="ant-upload-text">上传文章图片</div>
-                            </div>
-                        )}
-                    </Upload>
-                    <Modal visible={previewVisible} footer={null} onCancel={handleUploadCancel}>
-                        <img alt="example" style={{ width: '100%' }} src={previewImage} />
-                    </Modal>
-                </Form.Item>
-
-                <Form.Item name="submit" wrapperCol={{ ...layout.wrapperCol, offset: 8 }}>
-                    <Button type="primary" htmlType="submit" className="submit">
-                        发布
-                    </Button>
-                </Form.Item>
+                        <Form.Item
+                            label="文章图片"
+                            name="banner"
+                            getValueFromEvent={getImageUrl}
+                            rules={[
+                                {
+                                    required: true,
+                                    message: '请上传文章图片'
+                                }
+                            ]}>
+                            <Upload
+                                action="http://192.168.0.100:3030/tools/uploadImg"
+                                listType="picture-card"
+                                fileList={imageFileList}
+                                onPreview={handlePreview}
+                                // onRemove={}
+                                onChange={handleUploadChange}
+                                className="upload-img"
+                            >
+                                {imageFileList.length >= 1 ? null : (
+                                    <div>
+                                        <PlusOutlined />
+                                        <div className="ant-upload-text">上传图片</div>
+                                    </div>
+                                )}
+                            </Upload>
+                        </Form.Item>
+                        <Form.Item
+                            label="文章简介"
+                            name="desc"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: '请输入文章简介'
+                                },
+                                {
+                                    min: 5,
+                                    message: '不能少于5个字符'
+                                },
+                                {
+                                    max: 100,
+                                    message: '不能多于200个字符'
+                                }
+                            ]}>
+                            <TextArea rows={4} maxLength={200} />
+                        </Form.Item>
+                        <Modal visible={previewVisible} footer={null} onCancel={handleUploadCancel}>
+                            <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                        </Modal>
+                        <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 8 }}>
+                            <Button type="primary" htmlType="submit" className="submit">
+                                {
+                                    routerParams.id ? "编辑" : "发布"
+                                }
+                            </Button>
+                        </Form.Item>
+                    </Col>
+                    <Col className="gutter-row" span={12}>
+                        <Editor value={article} onChange={handleContentChange} height={500} placeholder='在此输入文章内容...' />
+                    </Col>
+                </Row>
             </Form>
-            <Modal
-                title="Basic Modal"
-                visible={visible}
-                onOk={handleOk}
-                onCancel={handleCancel}
-            >
-                <p>Some contents...</p>
-                <p>Some contents...</p>
-                <p>Some contents...</p>
-            </Modal>
-        </FormContainer>
+        </FormContainer >
     );
 }

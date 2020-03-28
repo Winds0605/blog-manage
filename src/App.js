@@ -19,7 +19,8 @@ function App () {
         <div className="main">
           <Redirect path="/" to="/home" />
           <Route path='/home' exact component={Home}></Route>
-          <Route path='/article-list' exact component={ArticleList}></Route>
+          <Route path='/article-list' component={ArticleList}></Route>
+          <Route path='/article-add/:id' exact component={ArticleAdd}></Route>
           <Route path='/article-add' exact component={ArticleAdd}></Route>
         </div>
       </BrowserRouter>
