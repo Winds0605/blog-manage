@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { useParams } from 'react-router-dom'
-import { useHistory } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { useParams, useHistory } from 'react-router-dom'
 import { FormContainer } from './style'
 import { getBase64 } from 'utils/util'
 import { get, post } from 'utils/http'
-import { Form, Input, Select, Button, Upload, Modal, message, Row, Col } from 'antd';
+import { Form, Input, Select, Button, Upload, Modal, message, Row, Col, PageHeader } from 'antd';
 import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
 import Editor from 'for-editor'
 
@@ -28,7 +27,6 @@ const validateMessages = {
 export default () => {
     const [previewVisible, setPreviewVisible] = useState(false)
     const [previewImage, setPreviewImage] = useState('')
-    const [initFormValues, setInitFormValues] = useState({})
     const [article, setArticle] = useState('')
     const [imageFileList, setImageFileList] = useState([])
     const [articleFileList, setArticleFileList] = useState([])
@@ -80,9 +78,9 @@ export default () => {
             }
 
             if (result.data.code !== 200) {
-                message.error(routerParams.id ? `编辑失败：${result.data.msg}` : `发布失败：${result.data.msg}`)
+                message.error(routerParams.id ? `保存失败：${result.data.msg}` : `发布失败：${result.data.msg}`)
             } else {
-                message.success(routerParams.id ? '编辑成功' : '发布成功')
+                message.success(routerParams.id ? '保存成功' : '发布成功')
                 if (routerParams.id) {
                     history.push('/article-list')
                 } else {
@@ -95,8 +93,6 @@ export default () => {
             throw error
         }
     };
-
-
 
     // 文件上传事件
     const fileUploadChange = ({ file, fileList }) => {
@@ -158,149 +154,165 @@ export default () => {
         }
     }
 
-    // 表单字段对应值变化事件
-    const formInfoChange = (changedValues, allValues) => {
-        console.log(allValues)
+    // 返回上一个页面
+    const back = () => {
+        history.goBack()
     }
+
+    // 表单字段对应值变化事件
+    // const formInfoChange = (changedValues, allValues) => {
+    //     console.log(allValues)
+    // }
 
     useEffect(() => {
         loadData(routerParams, form)
     }, [routerParams, form])
     return (
-        <FormContainer>
-            <Form initialValues={initFormValues} {...layout} name="nest-messages" onFinish={onSumbit} onValuesChange={formInfoChange} validateMessages={validateMessages} form={form}>
-                <Row gutter={16}>
-                    <Col className="gutter-row" span={12}>
-                        <Form.Item
-                            name='title'
-                            label="文章标题"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请输入文章标题'
-                                },
-                                {
-                                    min: 5,
-                                    message: '不能少于5个字符'
-                                },
-                                {
-                                    max: 30,
-                                    message: '不能多于30个字符'
-                                }
-                            ]}
-                        >
-                            <Input />
-                        </Form.Item>
-
-                        <Form.Item
-                            name='tag'
-                            label="文章分类"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请选择文章分类'
-                                }
-                            ]}
-                        >
-                            <Select defaultValue="请选择标签" style={{ width: 200 }}>
-                                {
-                                    selectOptions.map(value => {
-                                        return <Option value={value} key={value}>{value}</Option>
-                                    })
-                                }
-                            </Select>
-                        </Form.Item>
-
-                        <Form.Item
-                            label="文章内容"
-                            name='content'
-                            getValueFromEvent={getFileContent}
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请输入文章内容'
-                                }
-                            ]}>
-                            <Upload
-                                name='file'
-                                action='http://192.168.0.100:3030/tools/transform'
-                                className="import"
-                                onChange={fileUploadChange}
-                                fileList={articleFileList}
+        <>
+            {
+                routerParams.id ?
+                    <PageHeader
+                        className="site-page-header"
+                        onBack={back}
+                        title="返回文章列表"
+                        subTitle="文章修改"
+                    /> : null
+            }
+            <FormContainer>
+                <Form {...layout} name="nest-messages" onFinish={onSumbit} validateMessages={validateMessages} form={form}>
+                    <Row gutter={16}>
+                        <Col className="gutter-row" span={12}>
+                            <Form.Item
+                                name='title'
+                                label="文章标题"
                                 rules={[
                                     {
                                         required: true,
+                                        message: '请输入文章标题'
+                                    },
+                                    {
+                                        min: 5,
+                                        message: '不能少于5个字符'
+                                    },
+                                    {
+                                        max: 30,
+                                        message: '不能多于30个字符'
                                     }
                                 ]}
                             >
-                                <Button>
-                                    <UploadOutlined /> 导入文件
-                                </Button>
-                            </Upload>
-                        </Form.Item>
+                                <Input />
+                            </Form.Item>
 
-                        <Form.Item
-                            label="文章图片"
-                            name="banner"
-                            getValueFromEvent={getImageUrl}
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请上传文章图片'
-                                }
-                            ]}>
-                            <Upload
-                                action="http://192.168.0.100:3030/tools/uploadImg"
-                                listType="picture-card"
-                                fileList={imageFileList}
-                                onPreview={handlePreview}
-                                // onRemove={}
-                                onChange={handleUploadChange}
-                                className="upload-img"
+                            <Form.Item
+                                name='tag'
+                                label="文章分类"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: '请选择文章分类'
+                                    }
+                                ]}
                             >
-                                {imageFileList.length >= 1 ? null : (
-                                    <div>
-                                        <PlusOutlined />
-                                        <div className="ant-upload-text">上传图片</div>
-                                    </div>
-                                )}
-                            </Upload>
-                        </Form.Item>
-                        <Form.Item
-                            label="文章简介"
-                            name="desc"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: '请输入文章简介'
-                                },
-                                {
-                                    min: 5,
-                                    message: '不能少于5个字符'
-                                },
-                                {
-                                    max: 100,
-                                    message: '不能多于200个字符'
-                                }
-                            ]}>
-                            <TextArea rows={4} maxLength={200} />
-                        </Form.Item>
-                        <Modal visible={previewVisible} footer={null} onCancel={handleUploadCancel}>
-                            <img alt="example" style={{ width: '100%' }} src={previewImage} />
-                        </Modal>
-                        <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 8 }}>
-                            <Button type="primary" htmlType="submit" className="submit">
-                                {
-                                    routerParams.id ? "编辑" : "发布"
-                                }
-                            </Button>
-                        </Form.Item>
-                    </Col>
-                    <Col className="gutter-row" span={12}>
-                        <Editor value={article} onChange={handleContentChange} height={500} placeholder='在此输入文章内容...' />
-                    </Col>
-                </Row>
-            </Form>
-        </FormContainer >
+                                <Select defaultValue="请选择标签" style={{ width: 200 }}>
+                                    {
+                                        selectOptions.map(value => {
+                                            return <Option value={value} key={value}>{value}</Option>
+                                        })
+                                    }
+                                </Select>
+                            </Form.Item>
+
+                            <Form.Item
+                                label="文章内容"
+                                name='content'
+                                getValueFromEvent={getFileContent}
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: '请输入文章内容'
+                                    }
+                                ]}>
+                                <Upload
+                                    name='file'
+                                    action='http://192.168.0.100:3030/tools/transform'
+                                    className="import"
+                                    onChange={fileUploadChange}
+                                    fileList={articleFileList}
+                                    rules={[
+                                        {
+                                            required: true,
+                                        }
+                                    ]}
+                                >
+                                    <Button>
+                                        <UploadOutlined /> 导入文件
+                                </Button>
+                                </Upload>
+                            </Form.Item>
+
+                            <Form.Item
+                                label="文章图片"
+                                name="banner"
+                                getValueFromEvent={getImageUrl}
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: '请上传文章图片'
+                                    }
+                                ]}>
+                                <Upload
+                                    action="http://192.168.0.100:3030/tools/uploadImg"
+                                    listType="picture-card"
+                                    fileList={imageFileList}
+                                    onPreview={handlePreview}
+                                    // onRemove={}
+                                    onChange={handleUploadChange}
+                                    className="upload-img"
+                                >
+                                    {imageFileList.length >= 1 ? null : (
+                                        <div>
+                                            <PlusOutlined />
+                                            <div className="ant-upload-text">上传图片</div>
+                                        </div>
+                                    )}
+                                </Upload>
+                            </Form.Item>
+                            <Form.Item
+                                label="文章简介"
+                                name="desc"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: '请输入文章简介'
+                                    },
+                                    {
+                                        min: 5,
+                                        message: '不能少于5个字符'
+                                    },
+                                    {
+                                        max: 100,
+                                        message: '不能多于200个字符'
+                                    }
+                                ]}>
+                                <TextArea rows={4} maxLength={200} />
+                            </Form.Item>
+                            <Modal visible={previewVisible} footer={null} onCancel={handleUploadCancel}>
+                                <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                            </Modal>
+                            <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 8 }}>
+                                <Button type="primary" htmlType="submit" className="submit">
+                                    {
+                                        routerParams.id ? "保存编辑" : "发布"
+                                    }
+                                </Button>
+                            </Form.Item>
+                        </Col>
+                        <Col className="gutter-row" span={12}>
+                            <Editor value={article} onChange={handleContentChange} height={500} placeholder='在此输入文章内容...' />
+                        </Col>
+                    </Row>
+                </Form>
+            </FormContainer >
+        </>
     );
 }

@@ -54,3 +54,16 @@ export const getBase64 = (file) => {
         reader.onerror = error => reject(error);
     });
 }
+
+export const debounce = (fn, wait = 300, immediate) => {
+    let timer;
+    return function () {
+        if (immediate) {
+            fn.apply(this, arguments)
+        }
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => {
+            fn.apply(this, arguments)
+        }, wait)
+    }
+}

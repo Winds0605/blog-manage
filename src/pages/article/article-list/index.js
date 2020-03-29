@@ -57,7 +57,7 @@ export default () => {
             const articleDeleteResult = await post('/articles/delete', {
                 articleId: id
             })
-            const commentDeleteResult = await post('/comments/delete', {
+            const commentDeleteResult = await post('/comments/deleteByArticleId', {
                 articleId: id
             })
             if (articleDeleteResult.data.code !== 200 || commentDeleteResult.data.code !== 200) {
@@ -75,6 +75,11 @@ export default () => {
     // 编辑按钮点击事件
     const handleEdit = async (id) => {
         history.push(`/article-add/${id}`)
+    }
+
+    // 查看评论
+    const toCommentView = (id) => {
+        history.push(`/article-comment/${id}`)
     }
 
     // 文章图片显示错误时使用其他图片代替
@@ -148,7 +153,7 @@ export default () => {
                                     actions={[
                                         <Button onClick={handleEdit.bind(this, item.articleId)}>编辑</Button>,
                                         <Button onClick={handleDelete.bind(this, item.articleId, index)}>删除</Button>,
-                                        <Button>查看评论</Button>
+                                        <Button onClick={toCommentView.bind(this, item.articleId)}>查看评论</Button>
                                     ]}
                                     extra={
                                         <img
