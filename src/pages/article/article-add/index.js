@@ -5,6 +5,8 @@ import { getBase64 } from 'utils/util'
 import { get, post } from 'utils/http'
 import { Form, Input, Select, Button, Upload, Modal, message, Row, Col, PageHeader } from 'antd';
 import { UploadOutlined, PlusOutlined } from '@ant-design/icons';
+import { TAarticleTagsfindAll } from 'route/tags'
+import { ARfindById } from 'route/article'
 import Editor from 'for-editor'
 
 const { Option } = Select
@@ -39,7 +41,7 @@ export default () => {
     const loadData = async (params, form) => {
         try {
             if (params.id) {
-                const articleInfo = await post('/articles/findById', {
+                const articleInfo = await post(ARfindById, {
                     articleId: params.id
                 })
                 form.setFieldsValue({
@@ -57,8 +59,11 @@ export default () => {
                     url: articleInfo.data.data.banner
                 }])
             }
-            const result = await get('/tags/findAll')
-            setSelectOptions(result.data.data[0].tags)
+            let tags = await get(TAarticleTagsfindAll)
+            tags = tags.data.data.map(value => {
+                return value.type
+            })
+            setSelectOptions(tags)
         } catch (error) {
             message.error(error)
         }
@@ -84,7 +89,7 @@ export default () => {
                 if (routerParams.id) {
                     history.push('/article-list')
                 } else {
-                    form.current.resetFields()
+                    form.resetFields()
                     setImageFileList([])
                     setArticleFileList([])
                 }
@@ -125,6 +130,7 @@ export default () => {
         })
     }
 
+    // 缩略图取消
     const handleUploadCancel = () => setPreviewVisible(false)
 
     // 图片缩略图
@@ -234,7 +240,7 @@ export default () => {
                                 ]}>
                                 <Upload
                                     name='file'
-                                    action='http://192.168.0.100:3030/tools/transform'
+                                    action='http://localhost:3030/tools/transform'
                                     className="import"
                                     onChange={fileUploadChange}
                                     fileList={articleFileList}
@@ -261,7 +267,7 @@ export default () => {
                                     }
                                 ]}>
                                 <Upload
-                                    action="http://192.168.0.100:3030/tools/uploadImg"
+                                    action="http://localhost:3030/tools/uploadImg"
                                     listType="picture-card"
                                     fileList={imageFileList}
                                     onPreview={handlePreview}

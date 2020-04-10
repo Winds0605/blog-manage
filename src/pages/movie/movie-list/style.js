@@ -34,12 +34,42 @@ export const ListContainer = styled.div`
 `
 
 export const StatusContainer = styled.div`
+    display: flex;
+    width: 70%;
+    margin: 0 auto;
+
+    .desc,
+    .other {
+        flex:1;
+        text-align:left;
+        padding:0px 20px;
+    }
+
+    .other  {
+        line-height: 2.5;
+        border-right:1px solid #ededed;
+    }
+
+    .desc {
+        div{
+            overflow : hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 7;
+            -webkit-box-orient: vertical;
+        }
+    }
+
     .time,
     .views,
     .tag {
         margin-right:20px;
         font-size:12px;
     }
+`
+
+export const StatusItem = styled.div`
+
 `
 
 

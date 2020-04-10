@@ -3,7 +3,7 @@ import styled from 'styled-components'
 export const FormContainer = styled.div`
     width:90%;
     position:relative;
-    top:40%;
+    top:45%;
     transform:translateY(-50%);
     margin:20px auto;
     text-align:left;

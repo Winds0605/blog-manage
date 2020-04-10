@@ -3,7 +3,7 @@ import { useParams, useHistory } from 'react-router-dom'
 import { Comment, Avatar, Pagination, Modal, Input, message, Empty, PageHeader } from 'antd';
 import { CommentContainer } from './style'
 import { post } from 'utils/http'
-import { ACfindComentsById, ACdeleteByCommentId, ACdeleteSubCommentByCommentId } from 'route/articleComments'
+import { MCfindCommentsById, MCdeleteSubCommentByCommentId, MCdeleteByCommentId, MCaddSubComment } from 'route/movieComments'
 import { formatDate } from 'utils/util'
 
 
@@ -45,8 +45,8 @@ export default () => {
     const history = useHistory()
 
     const loadData = async (params, page, pageSize) => {
-        const result = await post(ACfindComentsById, {
-            articleId: params.id,
+        const result = await post(MCfindCommentsById, {
+            movieId: params.id,
             page,
             pageSize
         })
@@ -62,7 +62,7 @@ export default () => {
         }
         let result;
         try {
-            result = await post('/comments/addSubComment', {
+            result = await post(MCaddSubComment, {
                 commentId: currentCommentId,
                 content: comment,
                 author: 'Zephyr',
@@ -85,7 +85,7 @@ export default () => {
     const handleDelete = async (value) => {
         let result;
         try {
-            result = await post(ACdeleteByCommentId, {
+            result = await post(MCdeleteByCommentId, {
                 commentId: value.commentId
             })
         } catch (error) {
@@ -103,7 +103,7 @@ export default () => {
     const handleSubDelete = async (value) => {
         let result;
         try {
-            result = await post(ACdeleteSubCommentByCommentId, {
+            result = await post(MCdeleteSubCommentByCommentId, {
                 subId: value.subId
             })
         } catch (error) {
@@ -175,8 +175,8 @@ export default () => {
             <PageHeader
                 className="site-page-header"
                 onBack={back}
-                title="返回文章列表"
-                subTitle="文章评论"
+                title="返回电影列表"
+                subTitle="电影评论"
             />
             <CommentContainer>
                 {

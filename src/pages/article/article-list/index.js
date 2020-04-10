@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { get, post } from 'utils/http'
-import { MyIcon, formatDate } from 'utils/util'
+import { MyIcon, formatDate, getPageStartAndEnd } from 'utils/util'
 import { altImg } from 'utils/config'
 import { ListContainer, StatusContainer, Title } from './style'
-import { List, Tag, Button, Tabs, message, BackTop, Skeleton } from 'antd';
+import { List, Tag, Button, Tabs, message, BackTop, Pagination } from 'antd';
+import { TAarticleTagsfindAll } from 'route/tags'
+import { ARfindAll, ARdelete } from 'route/article'
+import { ACdeleteByArticleId } from 'route/articleComments'
 
 const { TabPane } = Tabs;
 
@@ -22,52 +25,60 @@ const Status = ({ date, views, tag }) => {
 
 
 export default () => {
-
     const [articles, setArticles] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [initLoading, setInitLoading] = useState(true)
+    const [currentTabsArticles, setCurrentTabsArticles] = useState([])
+    const [displayArticles, setDisplayArticles] = useState([])
+
+    const [total, setTotal] = useState(0)
     const [page, setPage] = useState(1)
-    const [total, setTatol] = useState(0)
-    const [nowTag, setNowTag] = useState('All')
+    const [pageSize, setPageSize] = useState(10)
     const [tags, setTags] = useState([])
+
+    const INIT_PAGE_SIZE = 10;
 
     let history = useHistory()
 
-    const loadData = async (tag) => {
+    const loadData = async () => {
+        let articles, tags
         try {
-            setInitLoading(true)
-            const articles = await post('/articles/findByPage', {
-                page: 1,
-                tag: tag || 'All'
-            })
-            const tags = await get('/tags/findAll')
-            setInitLoading(false)
-            setPage(1)
-            setArticles(articles.data.data)
-            setTatol(articles.data.total)
-            setTags(['All', ...tags.data.data[0].tags])
+            articles = await get(ARfindAll)
+            tags = await get(TAarticleTagsfindAll)
         } catch (error) {
             throw error
         }
+
+        if (articles.data.code !== 200 || tags.data.code !== 200) {
+            message.error('载入数据失败')
+        }
+        setTotal(articles.data.total)
+        setArticles(articles.data.data)
+        setCurrentTabsArticles(articles.data.data)
+        setDisplayArticles(articles.data.data.slice(0, INIT_PAGE_SIZE))
+
+        tags = tags.data.data.map(value => {
+            return value.type
+        })
+        setTags(['全部', ...tags])
     }
 
     // 删除按钮点击事件
     const handleDelete = async (id, index) => {
         try {
-            const articleDeleteResult = await post('/articles/delete', {
+            const articleDeleteResult = await post(ARdelete, {
                 articleId: id
             })
-            const commentDeleteResult = await post('/comments/deleteByArticleId', {
+            const commentDeleteResult = await post(ACdeleteByArticleId, {
                 articleId: id
             })
             if (articleDeleteResult.data.code !== 200 || commentDeleteResult.data.code !== 200) {
                 message.error('删除失败')
             } else {
                 message.success('删除成功')
-                setArticles(articles.slice(0, index).concat(articles.slice(index + 1)))
-                setTatol(total - 1)
+                setDisplayArticles(displayArticles.slice(0, index).concat(displayArticles.slice(index + 1)))
+                setTotal(total - 1)
             }
         } catch (error) {
+            message.error('发生错误')
             throw error
         }
     }
@@ -87,50 +98,37 @@ export default () => {
         e.target.src = altImg
     }
 
-
-    // 加载更多数据
-    const onLoadMore = async () => {
-        try {
-            setLoading(true)
-            const result = await post('/articles/findByPage', {
-                page: page + 1,
-                tag: nowTag
-            })
-            if (result.data.code === 200) {
-                setLoading(false)
-                setArticles(articles.concat(result.data.data))
-            } else {
-                message.error('载入数据失败')
-            }
-        } catch (error) {
-            throw error
-        }
-        setPage(page + 1)
-    }
-
     // tab标签切换
     const handleTabsSwitch = (value) => {
-        const tag = tags[value]
-        loadData(tag)
-        setNowTag(tag)
+        const { start, end } = getPageStartAndEnd(page, pageSize)
+
+        if (value === '全部') {
+            setTotal(articles.length)
+            setCurrentTabsArticles(articles)
+            setDisplayArticles(articles.slice(start, end))
+            return
+        }
+        const display = articles.filter((item) => item.tag === value)
+        setTotal(display.length)
+        setCurrentTabsArticles(display)
+        setDisplayArticles(display.slice(start, end))
     }
 
-    // 载入更多按钮
-    const loadMore =
-        !initLoading && !loading && articles.length !== total ? (
-            <div
-                style={{
-                    textAlign: 'center',
-                    marginTop: 12,
-                    marginBottom: 20,
-                    height: 32,
-                    lineHeight: '32px',
-                }}
-            >
-                <Button onClick={onLoadMore} className="load-more">加载更多文章</Button>
-            </div>
-        ) : null;
+    const showTotal = total => {
+        return `Total ${total} items`;
+    }
 
+    const onPageChange = (page, pageSize) => {
+        setPage(page)
+        const { start, end } = getPageStartAndEnd(page, pageSize)
+        setDisplayArticles(currentTabsArticles.slice(start, end))
+    }
+
+    const onShowSizeChange = (current, size) => {
+        setPageSize(size)
+        const { start, end } = getPageStartAndEnd(current, size)
+        setDisplayArticles(currentTabsArticles.slice(start, end))
+    }
 
     useEffect(() => {
         loadData()
@@ -140,13 +138,11 @@ export default () => {
         <ListContainer>
             <Tabs defaultActiveKey="1" tabPosition={'top'} onChange={handleTabsSwitch} animated={false}>
                 {tags.map((value, index) => (
-                    <TabPane tab={value} key={index}>
+                    <TabPane tab={value} key={value}>
                         <List
                             itemLayout="vertical"
                             size="large"
-                            loading={initLoading}
-                            loadMore={loadMore}
-                            dataSource={articles}
+                            dataSource={displayArticles}
                             renderItem={(item, index) => (
                                 <List.Item
                                     key={item.title}
@@ -165,19 +161,29 @@ export default () => {
                                         />
                                     }
                                 >
-                                    <Skeleton avatar title={false} loading={loading} active>
-                                        <List.Item.Meta
-                                            title={<Title>{item.title}</Title>}
-                                            description={<Status date={item.modifyOn} views={item.views} tag={item.tag} />}
-                                        />
-                                        {item.desc}
-                                    </Skeleton>
+                                    <List.Item.Meta
+                                        title={<Title>{item.title}</Title>}
+                                        description={<Status date={item.modifyOn} views={item.views} tag={item.tag} />}
+                                    />
+                                    {item.desc}
                                 </List.Item>
                             )}
                         />
                     </TabPane>
                 ))}
             </Tabs>
+            {
+                displayArticles.length > 0 ? <Pagination
+                    size="small"
+                    showSizeChanger
+                    showQuickJumper
+                    total={total}
+                    pageSizeOptions={['5', '10', '15', '20']}
+                    showTotal={showTotal}
+                    onShowSizeChange={onShowSizeChange}
+                    onChange={onPageChange}
+                /> : null
+            }
             <BackTop />
         </ListContainer>
     )

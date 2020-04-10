@@ -34,14 +34,6 @@ export function parseArticle (content) {
     return toc
 }
 
-
-export function movieAarryFormat (arr) {
-    if (arr.length < 2) {
-        return arr[0]
-    }
-    return arr.join('/')
-}
-
 export const MyIcon = createFromIconfontCN({
     scriptUrl: ICONURL
 });
@@ -65,5 +57,22 @@ export const debounce = (fn, wait = 300, immediate) => {
         timer = setTimeout(() => {
             fn.apply(this, arguments)
         }, wait)
+    }
+}
+
+export const getPageStartAndEnd = (p, s) => {
+    let start = (p - 1) * s
+    let end = (p - 1) * s + s
+    return {
+        start, end
+    }
+}
+
+export function movieAarryFormat (arr) {
+    if (Array.isArray(arr)) {
+        if (arr.length < 2) {
+            return arr[0]
+        }
+        return arr.join(' / ')
     }
 }

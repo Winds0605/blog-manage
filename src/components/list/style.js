@@ -1,6 +1,5 @@
 import styled from 'styled-components'
 
-
 export const ListContainer = styled.div`
     min-height:100%;
     .ant-pagination {
@@ -31,19 +30,4 @@ export const ListContainer = styled.div`
         padding: 30px 0;
         border-top: 1px solid #DDDDDD;
     }
-`
-
-export const StatusContainer = styled.div`
-    .time,
-    .views,
-    .tag {
-        margin-right:20px;
-        font-size:12px;
-    }
-`
-
-
-export const Title = styled.span`
-    font-size:25px;
-    color:#222222;
 `
