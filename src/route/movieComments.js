@@ -17,4 +17,4 @@ export const MCdeleteByMovieId = `${base}/deleteByMovieId`
 export const MCdeleteByCommentId = `${base}/deleteByCommentId`
 
 // 删除某个子评论
-export const MCdeleteSubCommentByCommentId = `${base}/deleteSubCommentByCommentId`
+export const MCdeleteSubCommentBySubId = `${base}/deleteSubCommentBySubId`

@@ -4,7 +4,6 @@ export const FormContainer = styled.div`
     width:90%;
     position:relative;
     top:45%;
-    transform:translateY(-50%);
     margin:20px auto;
     text-align:left;
 

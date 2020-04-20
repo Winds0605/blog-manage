@@ -20,3 +20,14 @@ code {
 .App {
   height: 100%;
 }
+
+
+.home {
+  padding: 120px 50px 50px 300px;
+}
+
+.container {
+  border: 1px solid #ededed;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, .2) 0 1px 5px 0px;
+}

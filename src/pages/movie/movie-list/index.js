@@ -89,7 +89,6 @@ export default () => {
                 articleId: id
             })
         } catch (error) {
-            message.error('发生错误')
             throw error
         }
         if (movieDeleteResult.data.code !== 200 || commentDeleteResult.data.code !== 200) {

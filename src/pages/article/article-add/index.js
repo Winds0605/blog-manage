@@ -41,9 +41,17 @@ export default () => {
     const loadData = async (params, form) => {
         try {
             if (params.id) {
-                const articleInfo = await post(ARfindById, {
-                    articleId: params.id
-                })
+                let articleInfo
+                try {
+                    articleInfo = await post(ARfindById, {
+                        articleId: params.id
+                    })
+                } catch (error) {
+                    throw error
+                }
+                if (articleInfo.data.code !== 200) {
+                    message.error('载入数据失败')
+                }
                 form.setFieldsValue({
                     title: articleInfo.data.data.title,
                     desc: articleInfo.data.data.desc,
@@ -59,7 +67,16 @@ export default () => {
                     url: articleInfo.data.data.banner
                 }])
             }
-            let tags = await get(TAarticleTagsfindAll)
+
+            let tags
+            try {
+                tags = await get(TAarticleTagsfindAll)
+            } catch (error) {
+                throw error
+            }
+            if (tags.data.code !== 200) {
+                message.error('载入数据失败')
+            }
             tags = tags.data.data.map(value => {
                 return value.type
             })

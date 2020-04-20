@@ -78,7 +78,6 @@ export default () => {
                 setTotal(total - 1)
             }
         } catch (error) {
-            message.error('发生错误')
             throw error
         }
     }

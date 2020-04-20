@@ -3,7 +3,7 @@ import { useParams, useHistory } from 'react-router-dom'
 import { Comment, Avatar, Pagination, Modal, Input, message, Empty, PageHeader } from 'antd';
 import { CommentContainer } from './style'
 import { post } from 'utils/http'
-import { MCfindCommentsById, MCdeleteSubCommentByCommentId, MCdeleteByCommentId, MCaddSubComment } from 'route/movieComments'
+import { MCfindCommentsById, MCdeleteSubCommentBySubId, MCdeleteByCommentId, MCaddSubComment } from 'route/movieComments'
 import { formatDate } from 'utils/util'
 
 
@@ -103,7 +103,7 @@ export default () => {
     const handleSubDelete = async (value) => {
         let result;
         try {
-            result = await post(MCdeleteSubCommentByCommentId, {
+            result = await post(MCdeleteSubCommentBySubId, {
                 subId: value.subId
             })
         } catch (error) {

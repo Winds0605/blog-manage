@@ -14,7 +14,7 @@ export const ACdeleteByArticleId = `${base}/deleteByArticleId`
 export const ACdeleteByCommentId = `${base}/deleteByCommentId`
 
 // 删除某个子评论
-export const ACdeleteSubCommentByCommentId = `${base}/deleteSubCommentByCommentId`
+export const ACdeleteSubCommentBySubId = `${base}/deleteSubCommentBySubId`
 
 // 增加一条子留言
 export const ACaddSubComment = `${base}/addSubComment`

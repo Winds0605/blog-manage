@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { message } from 'antd'
 
 // 新创建一个axios实例，并进行基础配置
 var instance = axios.create({
@@ -11,19 +11,32 @@ var instance = axios.create({
 // 添加请求拦截器
 instance.interceptors.request.use((config) => {
     // 再次设置tkoen或者添加loading等请求前的操作
+    const token = localStorage.getItem('token')
     // 添加一个loading
+    if (token) {
+        //设置统一的request header
+        config.headers.Authorization = token
+    }
     return config;
 })
 
-// 添加xi响应拦截器
+// 添加响应拦截器
 instance.interceptors.response.use(
     (response) => {
-        //响应数据后做点什么
-        // 添加一个loading
         return response;
     },
     (error) => {
         // 对响应错误做点什么
+        if (error.response.status === 401) {
+            localStorage.removeItem('token')
+            localStorage.removeItem('state')
+            message.warning('身份信息已过期 请重新登录')
+            setTimeout(() => {
+                window.location.href = '/login'
+            }, 2000)
+        } else {
+            message.error('发生未知错误')
+        }
         return Promise.reject(error);
     }
 )

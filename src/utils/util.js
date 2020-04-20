@@ -76,3 +76,7 @@ export function movieAarryFormat (arr) {
         return arr.join(' / ')
     }
 }
+
+export const isLogin = () => {
+    return localStorage.getItem('token') ? true : false
+}

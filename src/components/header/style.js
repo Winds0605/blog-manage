@@ -38,7 +38,11 @@ export const Test = styled.div`
     width:100%;
 `
 
-
+export const User = styled.div`
+    width:fit-content;
+    float:right;
+    margin-right:20px;
+`
 
 
 

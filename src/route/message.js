@@ -9,5 +9,8 @@ export const MEadd = `${base}/add`
 // 增加一条子留言
 export const MEaddSubMessage = `${base}/addSubMessage`
 
+// 删除一条留言
+export const MEdeleteByMessageId = `${base}/deleteByMessageId`
 
-
+// 删除一条子留言
+export const MEdeleteSubMessageBySubId = `${base}/deleteSubMessageBySubId`
