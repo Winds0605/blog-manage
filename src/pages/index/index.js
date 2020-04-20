@@ -1,5 +1,5 @@
 import React from 'react'
-import { Row, Col, Card } from 'antd'
+import { Row, Col, Card, Divider, Table } from 'antd'
 import { Container } from './style'
 import Count from 'react-countup'
 import { MyIcon } from 'utils/util'
@@ -19,46 +19,46 @@ export default () => {
     let imgName = ["Movie", "Article", "Photo", "Message"];
     const data = [
         {
-            time: "10:10",
+            time: "TypeScript",
             call: 4,
-            waiting: 2,
-            people: 2
+            increase: 2,
+            views: 2
         },
         {
-            time: "10:15",
+            time: "JavaScript",
             call: 2,
-            waiting: 6,
-            people: 3
+            increase: 6,
+            views: 3
         },
         {
-            time: "10:20",
+            time: "Sass",
             call: 13,
-            waiting: 2,
-            people: 5
+            increase: 2,
+            views: 5
         },
         {
-            time: "10:25",
+            time: "算法与数据结构",
             call: 9,
-            waiting: 9,
-            people: 1
+            increase: 9,
+            views: 1
         },
         {
-            time: "10:30",
+            time: "Python",
             call: 5,
-            waiting: 2,
-            people: 3
+            increase: 2,
+            views: 3
         },
         {
-            time: "10:35",
+            time: "前端",
             call: 8,
-            waiting: 2,
-            people: 1
+            increase: 2,
+            views: 1
         },
         {
-            time: "10:40",
+            time: "随记",
             call: 13,
-            waiting: 1,
-            people: 2
+            increase: 1,
+            views: 2
         }
     ];
     const scale = {
@@ -72,10 +72,58 @@ export default () => {
             min: 0
         }
     };
+    const columns = [
+        {
+            title: '留言者',
+            dataIndex: 'name',
+            key: 'name',
+            align: 'center'
+        },
+        {
+            title: '留言时间',
+            dataIndex: 'time',
+            key: 'time',
+            align: 'center'
+        },
+        {
+            title: '留言内容',
+            dataIndex: 'content',
+            key: 'content',
+            align: 'center'
+        }
+    ];
+    const data1 = [
+        {
+            name: 'John Brown',
+            content: 'New York No. 1 Lake Park',
+            time: '2019-9-1'
+        },
+        {
+            name: 'John Brown',
+            content: 'New York No. 1 Lake Park',
+            time: '2019-9-1'
+        },
+        {
+            name: 'John Brown',
+            content: 'New York No. 1 Lake Park',
+            time: '2019-9-1'
+        },
+        {
+            name: 'John Brown',
+            content: 'New York No. 1 Lake Park',
+            time: '2019-9-1'
+        },
+        {
+            name: 'John Brown',
+            content: 'New York No. 1 Lake Park',
+            time: '2019-9-1'
+        },
+    ];
     let chartIns = null;
     return (
         <Container>
-            <Row gutter={16}>
+            <Divider orientation="left">概况</Divider>
+            <Row gutter={16} style={{ marginBottom: '30px' }}>
                 {
                     imgSrc.map(function (item, index) {
                         return (
@@ -94,7 +142,8 @@ export default () => {
                     })
                 }
             </Row>
-            <Row>
+            <Divider orientation="left">文章阅读</Divider>
+            <Row style={{ marginBottom: '30px' }}>
                 <Col span={24} className="gutter-row">
                     <Chart
                         forceFit={true}
@@ -128,7 +177,7 @@ export default () => {
                             allowAllCanceled={true}
                             items={[
                                 {
-                                    value: "waiting",
+                                    value: "increase",
                                     marker: {
                                         symbol: "square",
                                         fill: "#3182bd",
@@ -136,7 +185,7 @@ export default () => {
                                     }
                                 },
                                 {
-                                    value: "people",
+                                    value: "views",
                                     marker: {
                                         symbol: "hyphen",
                                         stroke: "#ffae6b",
@@ -165,7 +214,7 @@ export default () => {
                             }}
                         />
                         <Axis
-                            name="people"
+                            name="views"
                             grid={null}
                             label={{
                                 textStyle: {
@@ -174,17 +223,17 @@ export default () => {
                             }}
                         />
                         <Tooltip />
-                        <Geom type="interval" position="time*waiting" color="#3182bd" />
+                        <Geom type="interval" position="time*increase" color="#3182bd" />
                         <Geom
                             type="line"
-                            position="time*people"
+                            position="time*views"
                             color="#fdae6b"
                             size={3}
                             shape="smooth"
                         />
                         <Geom
                             type="point"
-                            position="time*people"
+                            position="time*views"
                             color="#fdae6b"
                             size={4}
                             shape="circle"
@@ -192,7 +241,8 @@ export default () => {
                     </Chart>
                 </Col>
             </Row>
-
+            <Divider orientation="left">新增留言</Divider>
+            <Table bordered columns={columns} dataSource={data1} pagination={false} style={{ marginBottom: '30px' }} />
         </Container>
     )
 }

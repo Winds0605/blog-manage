@@ -3,7 +3,8 @@ import Sider from 'components/sider/index'
 import Header from 'components/header/index'
 import { Route, Switch, Redirect } from 'react-router-dom'
 
-import Index from 'pages/ddd/index'
+import Index from 'pages/index/index'
+import noMatch from 'pages/common/notPage'
 // 文章
 import ArticleList from 'pages/article/article-list/index'
 import ArticleAdd from 'pages/article/article-add/index'
@@ -48,6 +49,7 @@ export default () => {
                         <Route exact path='/home/article-tag' component={ArticleTag} />
                         <Route exact path='/home/message' component={Message} />
                         <Route exact path='/home/photo' component={Photo} />
+                        <Route component={noMatch} />
                     </Switch>
                 </Container>
             </HomeContainer>
