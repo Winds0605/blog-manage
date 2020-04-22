@@ -109,7 +109,7 @@ export default () => {
         } else {
             message.success(routerParams.id ? "保存成功" : '发布成功')
             if (routerParams.id) {
-                history.goBack()
+                history.push('/home/movie-list')
             } else {
                 form.setFieldsValue({
                     name: '',

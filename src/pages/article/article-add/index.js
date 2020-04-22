@@ -104,7 +104,7 @@ export default () => {
             } else {
                 message.success(routerParams.id ? '保存成功' : '发布成功')
                 if (routerParams.id) {
-                    history.push('/article-list')
+                    history.push('/home/article-list')
                 } else {
                     form.resetFields()
                     setImageFileList([])

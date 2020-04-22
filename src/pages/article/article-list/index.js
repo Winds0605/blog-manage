@@ -84,12 +84,12 @@ export default () => {
 
     // 编辑按钮点击事件
     const handleEdit = async (id) => {
-        history.push(`/article-add/${id}`)
+        history.push(`/home/article-add/${id}`)
     }
 
     // 查看评论
     const toCommentView = (id) => {
-        history.push(`/article-comment/${id}`)
+        history.push(`/home/article-comment/${id}`)
     }
 
     // 文章图片显示错误时使用其他图片代替

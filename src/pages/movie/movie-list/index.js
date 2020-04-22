@@ -80,13 +80,14 @@ export default () => {
 
     // 删除按钮点击事件
     const handleDelete = async (id, index) => {
+        console.log(id)
         let movieDeleteResult, commentDeleteResult
         try {
             movieDeleteResult = await post(MOdelete, {
                 movieId: id
             })
             commentDeleteResult = await post(MCdeleteByMovieId, {
-                articleId: id
+                movieId: id
             })
         } catch (error) {
             throw error
@@ -102,12 +103,12 @@ export default () => {
 
     // 编辑按钮点击事件
     const handleEdit = async (id) => {
-        history.push(`/movie-add/${id}`)
+        history.push(`/home/movie-add/${id}`)
     }
 
     // 查看评论
     const toCommentView = (id) => {
-        history.push(`/movie-comment/${id}`)
+        history.push(`/home/movie-comment/${id}`)
     }
 
     // 文章图片显示错误时使用其他图片代替
